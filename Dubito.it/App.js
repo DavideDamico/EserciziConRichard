@@ -6,6 +6,10 @@ class Marketplace {
   reports = [];
   favorites = [];
 
+  getUserByToken(token) {
+    //controllerà nella tabella auth l'id utente dato il token , se il token non esiste restituisce null, se esiste restituisce l'oggetto utente
+  }
+
   login(username, password) {
     //controllo nell'array degli users se esiste l'account con quell'username e quella password
   }
@@ -26,7 +30,6 @@ class Marketplace {
     status,
     price,
     address,
-    sold,
     urlPhoto
   ) {
     //legge i dati e crea l'annuncio
@@ -34,20 +37,20 @@ class Marketplace {
 
   updateAd(
     token,
+    referenceKeyAd,
     title,
     description,
     category,
     status,
     price,
     address,
-    sold,
     urlPhoto
   ) {
     //legge i dati e li modifica
   }
 
-  deleteAd(token) {
-    //controlla il token ed elimina l'annuncio
+  deleteAd(token, referenceKeyAd) {
+    //controlla il token , trova l'annuncio tramite l'id ed elimina l'annuncio
   }
 
   createReview(token, referenceKeyAd, title, description, rating) {
@@ -66,41 +69,57 @@ class Marketplace {
     //controlla il token , richiede la password per la conferma e elimina l'account
   }
 
-  updateUsername(token) {
+  updateUsername(token, newUsername) {
     //controlla il token e modifica l'username
   }
 
-  markAsSold(token, referenceKeyAd) {
-    //controlla il token , targhezza l'annuncio e lo marchia come venduto tramite un booleano
+  markAsSold(token, referenceKeyAd, referenceKeyUserPurchased) {
+    //controlla il token , targhetta l'annuncio e lo marchia come venduto
   }
 
-  searchAdList(category) {
+  adListByCategory(category) {
     //cerca nell'array degli 'Ads' tutti gli oggetti con quella categoria
   }
 
-  findAd(title) {
-    //cerca nell'array degli 'Ads' il titolo inserito
+  adListByText(text) {
+    //cerca nell'array degli 'Ads' il testo inserito all'interno di 'title' e 'description'
   }
 
-  getAdListSoldByUser(referenceKeyUser, referenceKeyAd, sold) {
+  adDetail(referenceKeyAd) {
+    //cerca nell'array degli 'Ads' l'annuncio tramite la referenceKey
+  }
+
+  adListSoldByUser(token) {
     //cerca nell'array 'Ads' tutti gli oggetti col valore sold 'true'
   }
 
-  getAdListPurchasedByUser(token) {
+  adListPurchasedByUser(token) {
     //cerca nell'array 'Ads' tutti gli oggetti col valore sold 'false'
   }
 
-  favoriteList(referenceKeyAd, referenceKeyUser) {
+  favoriteList(token) {
     //
   }
 
-  addFavorite(referenceKeyAd, referenceKeyUser, username) {
+  favoriteAdd(token, referenceKeyAd) {
     //aggiunge nell'array 'favorites' l'annuncio targhettizzato tramite la referenceKey
   }
 
-  deleteFavorite(referenceKeyAd, referenceKeyUser, username) {
+  favoriteDetail(token, referenceKeyAd) {
+    //cerca nell'array 'favorites' l'annuncio targhettizzato tramite la referenceKey
+  }
+
+  favoriteDelete(token, referenceKeyAd) {
     //elimina dall'array 'favorites' l'annuncio targhettizzato tramite la referenceKey
   }
+
+  getPhoneNumber(token, referenceKeyAd) {}
+
+  getListOfInterestedUserByAd(token, referenceKeyAd) {}
+
+  getListOfPurchasedToBeConfirmed(token) {}
+
+  markAsBought(token, referenceKeyAd) {}
 }
 
 class ModelUser {
@@ -121,11 +140,13 @@ class ModelAd {
     status,
     price,
     address,
-    sold,
+    phone,
     urlPhoto
   ) {
     this.primaryKey = Math.random();
     this.date = new Date();
+    this.lead = [];
+    this.referenceKeyUserPurchased = "";
     this.referenceKeyUser = referenceKeyUser;
     this.title = title;
     this.description = description;
@@ -133,7 +154,7 @@ class ModelAd {
     this.status = status;
     this.price = price;
     this.address = address;
-    this.sold = sold;
+    this.phone = phone;
     this.urlPhoto = urlPhoto;
   }
 }
