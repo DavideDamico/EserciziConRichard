@@ -2,12 +2,17 @@ class Marketplace {
   users = [];
   ads = [];
   reviews = [];
-  auth = [];
+  auth = []; //array
   reports = [];
   favorites = [];
 
   getUserByToken(token) {
-    //controllerà nella tabella auth l'id utente dato il token , se il token non esiste restituisce null, se esiste restituisce l'oggetto utente
+    const authFound = this.auth.find(function (auth) {
+      if (auth.token === token) return true;
+      else return false;
+    });
+    if (!authFound) return null;
+    else return authFound;
   }
 
   login(username, password) {
@@ -32,7 +37,24 @@ class Marketplace {
     address,
     urlPhoto
   ) {
-    //legge i dati e crea l'annuncio
+    const auth = this.getUserByToken(token);
+    if (!auth) {
+      console.log("Non-existent Token");
+    } else {
+      const newAd = new ModelAd(
+        auth.referenceKeyUser,
+        title,
+        description,
+        category,
+        status,
+        price,
+        address,
+        phone,
+        urlPhoto
+      );
+      this.ads = [...this.ads, newAd];
+      console.log("Ad successfully created");
+    }
   }
 
   updateAd(
@@ -50,6 +72,22 @@ class Marketplace {
   }
 
   deleteAd(token, referenceKeyAd) {
+    const auth = this.getUserByToken(token);
+    if (!auth) console.log("Non-existent Token");
+    else {
+      const adFound = this.ads.find(function (ad) {
+        if (ad.primaryKey === referenceKeyAd) return true;
+        else return false;
+      });
+      if (!adFound) console.log("Non-existent Ad");
+      else {
+        this.ads = this.ads.filter(function (ad) {
+          if (adFound.primaryKey !== ad.primaryKey) return true;
+          else return false;
+        });
+        console.log("Ad deleted successfully");
+      }
+    }
     //controlla il token , trova l'annuncio tramite l'id ed elimina l'annuncio
   }
 
@@ -73,43 +111,68 @@ class Marketplace {
     //controlla il token e modifica l'username
   }
 
-  markAsSold(token, referenceKeyAd, referenceKeyUserPurchased) {
+  markAdAsSold(token, referenceKeyAd, referenceKeyUserPurchased) {
+    const authFound = this.getUserByToken(token);
+    if (!authFound) console.log("Non-existent Token");
+    else {
+      const adFound = this.ads.find(function (ad) {
+        if (ad.primaryKey === referenceKeyAd) return true;
+        else return false;
+      });
+      if (!adFound) console.log("Non-existent Ad");
+      else {
+        if (!authFound.referenceKeyUser !== adFound.referenceKeyUser) {
+          console.log("Author not recognized");
+        } else {
+          this.ads = this.ads.map(function (ad) {
+            if (adFound.primaryKey === ad.primaryKey) {
+              return {
+                ...ad,
+                referenceKeyUserPurchased: referenceKeyUserPurchased,
+              };
+            } else {
+              return { ...ad };
+            }
+          });
+        }
+      }
+    }
     //controlla il token , targhetta l'annuncio e lo marchia come venduto
   }
 
-  adListByCategory(category) {
+  getAdListByCategory(category) {
     //cerca nell'array degli 'Ads' tutti gli oggetti con quella categoria
   }
 
-  adListByText(text) {
+  getAdListByText(text) {
     //cerca nell'array degli 'Ads' il testo inserito all'interno di 'title' e 'description'
   }
 
-  adDetail(referenceKeyAd) {
+  detailAd(referenceKeyAd) {
     //cerca nell'array degli 'Ads' l'annuncio tramite la referenceKey
   }
 
-  adListSoldByUser(token) {
+  getAdListSoldByUser(token) {
     //cerca nell'array 'Ads' tutti gli oggetti col valore sold 'true'
   }
 
-  adListPurchasedByUser(token) {
+  getAdListPurchasedByUser(token) {
     //cerca nell'array 'Ads' tutti gli oggetti col valore sold 'false'
   }
 
-  favoriteList(token) {
+  listFavorite(token) {
     //
   }
 
-  favoriteAdd(token, referenceKeyAd) {
+  addFavorite(token, referenceKeyAd) {
     //aggiunge nell'array 'favorites' l'annuncio targhettizzato tramite la referenceKey
   }
 
-  favoriteDetail(token, referenceKeyAd) {
+  detailFavorite(token, referenceKeyAd) {
     //cerca nell'array 'favorites' l'annuncio targhettizzato tramite la referenceKey
   }
 
-  favoriteDelete(token, referenceKeyAd) {
+  deleteFavorite(token, referenceKeyAd) {
     //elimina dall'array 'favorites' l'annuncio targhettizzato tramite la referenceKey
   }
 
