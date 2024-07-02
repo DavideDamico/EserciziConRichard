@@ -1,4 +1,4 @@
-class Marketplace {
+class App {
   users = [];
   ads = [];
   reviews = [];
@@ -17,19 +17,17 @@ class Marketplace {
 
   login(username, password) {
     const userFound = this.users.find(function (user) {
-      if (user.username === username) return true;
+      if (user.username === username && user.password === password) return true;
       else return false;
     });
     if (!!userFound) {
-      if (userFound.password === password) {
-        const modelAuth = new ModelAuth(userFound.referenceKeyUser);
-        this.auth = [...this.auth, modelAuth];
-        console.log("Logged Successfully");
-        return modelAuth.token;
-      } else console.log("Account not found");
-    }
-    //controllo nell'array degli users se esiste l'account con quell'username e quella password
+      const modelAuth = new ModelAuth(userFound.referenceKeyUser);
+      this.auth = [...this.auth, modelAuth];
+      console.log("Logged Successfully");
+      return modelAuth.token;
+    } else console.log("Account not found");
   }
+  //controllo nell'array degli users se esiste l'account con quell'username e quella password
 
   logout(token) {
     const auth = this.getUserByToken(token);
@@ -101,36 +99,24 @@ class Marketplace {
     phone,
     urlPhoto
   ) {
-    const auth = this.getAuthByToken(token);
-    const adFound = null;
+    const auth = this.getUserByToken(token);
     if (!!auth) {
-      adFound = this.ads.find(function (ad) {
+      const adFound = this.ads.find(function (ad) {
         if (ad.primaryKeyAd === referenceKeyAd) return true;
         else return false;
       });
+      if (!!adFound) {
+        (adFound.title = title),
+          (adFound.description = description),
+          (adFound.category = category),
+          (adFound.status = status),
+          (adFound.price = price),
+          (adFound.address = address),
+          (adFound.phone = phone),
+          (adFound.urlPhoto = urlPhoto);
+      }
+      console.log("Ad successfully updated");
     } else console.log("Authentication failed");
-
-    if (!!adFound) {
-      const isTheOwner = auth.referenceKeyUser === adFound.idOwner;
-
-      if (isTheOwner) {
-        this.ads.map(function (ad) {
-          if (ad.primaryKeyAd === referenceKeyAd)
-            return {
-              ...ad,
-              title: title,
-              description: description,
-              category: category,
-              status: status,
-              price: price,
-              address: address,
-              phone: phone,
-              urlPhoto: urlPhoto,
-            };
-          else return ad;
-        });
-      } else console.log("You are not the owner of the ad");
-    } else console.log("Ad not found");
   }
 
   deleteAd(token, referenceKeyAd) {
@@ -156,33 +142,31 @@ class Marketplace {
   createReview(token, referenceKeyAd, title, description, rating) {
     const auth = this.getUserByToken(token);
     const adFound = this.ads.find(function (ad) {
-      if (ad.primaryKeyAd === referenceKeyAd) return true;
+      if (ad.primaryKey === referenceKeyAd) return true;
       else return false;
     });
 
     if (!!auth) {
       if (!!adFound) {
-        if (adFound.referenceKeyUserPurchase === auth.referenceKeyUser) {
-          const newReview = new ModelReview(
-            auth.referenceKeyUser,
-            referenceKeyAd,
-            title,
-            description,
-            rating
-          );
-          this.reviews = [...this.reviews, newReview];
-        } else console.log("You did not buy the product");
+        const newReview = new ModelReview(
+          auth.referenceKeyUser,
+          referenceKeyAd,
+          title,
+          description,
+          rating
+        );
+        this.reviews = [...this.reviews, newReview];
+        console.log("Review created");
       } else console.log("Ad not found");
     } else console.log("Authentication failed");
+    //controlla il token , targhetta l'annuncio, , verifica se si è autenticati , verifica se l'ad esiste , crea la review
   }
-
-  //controlla il token , targhetta l'annuncio e legge i dati
 
   updateReview(token, referenceKeyAd, title, description, rating) {
-    //controlla il token , targhetta l'annuncio e modifica i dati
+    //controlla il token , targhetta l'annuncio , verifica che tu sia l'owner
   }
 
-  deleteReview(token, referenceKeyAd) {
+  deleteReview(token, referenceKeyAd, referenceKeyUser) {
     const auth = this.getUserByToken(token);
     if (!auth) {
       console.log("Non-existent Token");
@@ -191,16 +175,21 @@ class Marketplace {
         if (review.referenceKeyAd === referenceKeyAd) return true;
         else return false;
       });
-      if (!reviewFound) console.log("Non-existent Review");
+      if (auth.referenceKeyUser !== review.referenceKeyUser)
+        console.log("You can't do that");
       else {
-        this.reviews = this.reviews.filter(function (review) {
-          if (reviewFound.referenceKeyAd !== review.referenceKeyAd) return true;
-          else return false;
-        });
-        console.log("Review deleted successfully");
+        if (!reviewFound) console.log("Non-existent Review");
+        else {
+          this.reviews = this.reviews.filter(function (review) {
+            if (reviewFound.referenceKeyAd !== review.referenceKeyAd)
+              return true;
+            else return false;
+          });
+          console.log("Review deleted successfully");
+        }
       }
     }
-    //controlla il token , targhetta l'annuncio e elimina la recensione
+    //controlla il token , targhetta l'annuncio e elimina la recensione collegata a quell'annuncio
   }
 
   deleteAccount(token, password) {
@@ -360,4 +349,4 @@ class ModelFavorite {
   }
 }
 
-const marketplace = new Marketplace();
+const app = new App();
