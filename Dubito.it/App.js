@@ -16,15 +16,46 @@ class Marketplace {
   }
 
   login(username, password) {
+    const userFound = this.users.find(function (user) {
+      if (user.username === username) return true;
+      else return false;
+    });
+    if (!!userFound) {
+      if (userFound.password === password) {
+        const modelAuth = new ModelAuth(userFound.referenceKeyUser);
+        this.auth = [...this.auth, modelAuth];
+        console.log("Logged Successfully");
+        return modelAuth.token;
+      } else console.log("Account not found");
+    }
     //controllo nell'array degli users se esiste l'account con quell'username e quella password
   }
 
   logout(token) {
-    //richiedo il token all'user e lo reinderizzo alla home di login
+    const auth = this.getUserByToken(token);
+    if (!auth) {
+      console.log("Non-existent Token");
+    } else {
+      console.log("Logout successfully done");
+    }
+
+    //controllare se l'account è loggato , se non è loggato console.log "Non-existent Token" sennò console.log "Logout successfully done"
   }
 
-  register(email, password) {
-    //form di compilazione email e password e push nell'array 'users'
+  register(username, email, password) {
+    const userFound = this.users.find(function (emails) {
+      if (email === emails.email) return true;
+      else return false;
+    });
+    if (!!userFound) {
+      console.log("Account already exist");
+    } else {
+      const modelUser = new ModelUser(username, email, password);
+      this.users = [...this.users, modelUser];
+      console.log("Account created");
+    }
+    // controllare se nell'array 'users' esiste già un oggetto con quell'username o email , se esiste già console.log "account already exist"
+    // sennò richiamiamo il model e pushiamo il nuovo user nell'array con un console.log "registered successfully"
   }
 
   createAd(
@@ -35,6 +66,7 @@ class Marketplace {
     status,
     price,
     address,
+    phone,
     urlPhoto
   ) {
     const auth = this.getUserByToken(token);
@@ -66,9 +98,39 @@ class Marketplace {
     status,
     price,
     address,
+    phone,
     urlPhoto
   ) {
-    //legge i dati e li modifica
+    const auth = this.getAuthByToken(token);
+    const adFound = null;
+    if (!!auth) {
+      adFound = this.ads.find(function (ad) {
+        if (ad.primaryKeyAd === referenceKeyAd) return true;
+        else return false;
+      });
+    } else console.log("Authentication failed");
+
+    if (!!adFound) {
+      const isTheOwner = auth.referenceKeyUser === adFound.idOwner;
+
+      if (isTheOwner) {
+        this.ads.map(function (ad) {
+          if (ad.primaryKeyAd === referenceKeyAd)
+            return {
+              ...ad,
+              title: title,
+              description: description,
+              category: category,
+              status: status,
+              price: price,
+              address: address,
+              phone: phone,
+              urlPhoto: urlPhoto,
+            };
+          else return ad;
+        });
+      } else console.log("You are not the owner of the ad");
+    } else console.log("Ad not found");
   }
 
   deleteAd(token, referenceKeyAd) {
@@ -92,14 +154,52 @@ class Marketplace {
   }
 
   createReview(token, referenceKeyAd, title, description, rating) {
-    //controlla il token , targhetta l'annuncio e legge i dati
+    const auth = this.getUserByToken(token);
+    const adFound = this.ads.find(function (ad) {
+      if (ad.primaryKeyAd === referenceKeyAd) return true;
+      else return false;
+    });
+
+    if (!!auth) {
+      if (!!adFound) {
+        if (adFound.referenceKeyUserPurchase === auth.referenceKeyUser) {
+          const newReview = new ModelReview(
+            auth.referenceKeyUser,
+            referenceKeyAd,
+            title,
+            description,
+            rating
+          );
+          this.reviews = [...this.reviews, newReview];
+        } else console.log("You did not buy the product");
+      } else console.log("Ad not found");
+    } else console.log("Authentication failed");
   }
+
+  //controlla il token , targhetta l'annuncio e legge i dati
 
   updateReview(token, referenceKeyAd, title, description, rating) {
     //controlla il token , targhetta l'annuncio e modifica i dati
   }
 
   deleteReview(token, referenceKeyAd) {
+    const auth = this.getUserByToken(token);
+    if (!auth) {
+      console.log("Non-existent Token");
+    } else {
+      const reviewFound = this.reviews.find(function (review) {
+        if (review.referenceKeyAd === referenceKeyAd) return true;
+        else return false;
+      });
+      if (!reviewFound) console.log("Non-existent Review");
+      else {
+        this.reviews = this.reviews.filter(function (review) {
+          if (reviewFound.referenceKeyAd !== review.referenceKeyAd) return true;
+          else return false;
+        });
+        console.log("Review deleted successfully");
+      }
+    }
     //controlla il token , targhetta l'annuncio e elimina la recensione
   }
 
@@ -259,3 +359,5 @@ class ModelFavorite {
     this.referenceKeyAd = referenceKeyAd;
   }
 }
+
+const marketplace = new Marketplace();
